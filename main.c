@@ -6,53 +6,102 @@
 /*   By: ubegona <ubegona@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/18 12:34:26 by ubegona           #+#    #+#             */
-/*   Updated: 2022/11/23 14:46:28 by ubegona          ###   ########.fr       */
+/*   Updated: 2022/11/28 15:25:52 by ubegona          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
 
-void	child_procces(int fd[2], t_list input)
+void	child_procces_first(int *fd, t_list input, char **envp, int i)
 {
+	int	temp;
 
-	close(fd[0]);
+	temp = dup(STDIN_FILENO);
+	dup2(input.file_fd[0], STDIN_FILENO);
 	dup2(fd[1], STDOUT_FILENO);
+	close(input.file_fd[0]);
+	close(fd[0]);
 	close(fd[1]);
-	if (execlp("/sbin/ping", input.command[0][0], input.command[0][1],input.command[0][2], input.command[0][3], NULL) <= 0)
-		printf("mierda");
+	if (execve(input.path[i], input.command[i], envp) <= 0)
+	{
+
+		dup2(temp, STDOUT_FILENO);
+		write(1, "ERROR\n", 6);
+	}
 }
 
-t_list	find_path(int argc, t_list input, char **envp)
+void	child_procces_last(int *fd, t_list input, char **envp, int i)
+{
+	int	temp;
+
+	temp = dup(STDIN_FILENO);
+	dup2(fd[0], STDIN_FILENO);
+	dup2(input.file_fd[1], STDOUT_FILENO);
+	close(input.file_fd[1]);
+	close(fd[0]);
+	close(fd[1]);
+	if (execve(input.path[i], input.command[i], envp) <= 0)
+	{
+		dup2(temp, STDOUT_FILENO);
+		write(1, "ERROR\n", 6);
+	}
+}
+
+char	**find_paths(char **envp)
+{
+	int		i;
+	char	*path_test;
+	char	**paths;
+	char	**path_okey;
+
+	i = 0;
+	path_okey = NULL;
+	while (ft_strncmp("PATH", envp[i++], 4))
+		path_test = &envp[i][5];
+	paths = (ft_split(path_test, ':'));
+	path_okey = malloc(sizeof(char *) * ft_strlen(*paths));
+	i = 0;
+	while (paths[i])
+	{
+		path_okey[i] = ft_strjoin(paths[i], "/");
+		i++;
+	}
+	path_okey[i] = NULL;
+	i = 0;
+	while (paths[i])
+		free(paths[i++]);
+	free(paths);
+	return (path_okey);
+}
+
+t_list	fill_up_path(int argc, t_list input, char **envp)
 {
 	int		i;
 	int		j;
-	char	*path_test;
 	char	**paths;
 	char	*command_test;
 
-	i = 0;
-	while (ft_strncmp("PATH", envp[i++], 4))
-		path_test = &envp[i][5];
-	paths = ft_split (path_test, ':');
+	paths = find_paths(envp);
+	input.path = malloc(sizeof(char **) * (argc - 2));
 	j = 0;
-	input.path = malloc(sizeof(char **) * 10);
 	while (input.command[j])
 	{	
 		i = 0;
-		
-		while (access(command_test, 0) != 0)
+		command_test = ft_strjoin(paths[i], *input.command[j]);
+		while (paths[i] && access(command_test, 0) != 0)
 		{
-			paths[i] = ft_strjoin(paths[i], "/");
+			free(command_test);
 			command_test = ft_strjoin(paths[i], *input.command[j]);
-			printf("q hostias %s\n", command_test);
 			i++;
 		}
-		free(command_test);
 		input.path[j] = command_test;
+		command_test = NULL;
 		j++;
 	}
-	printf("hau 0 %s eta hau 1 %s\n", input.path[0], input.path[1]);
-	return (input);
+	i = 0;
+	while (paths[i])
+		free(paths[i++]);
+	return (free(paths), free(command_test), input);
 }
 
 t_list	fill_up_input(int argc, char **argv, char **envp)
@@ -63,16 +112,44 @@ t_list	fill_up_input(int argc, char **argv, char **envp)
 
 	i = 1;
 	j = 0;
-	input.file1 = argv[i++];
-	input.command = malloc(sizeof(char **) * 10);
-	while (argv[i])
+	input.command = malloc(sizeof(char **) * (argc));
+	input.file = malloc(sizeof(char *) * 2);
+	input.file[0] = argv[i++];
+	while (argv[i + 1])
 	{
 		input.command[j++] = ft_split(argv[i++], ' ');
 	}
 	input.command[j] = NULL;
-	input.file2 = argv[i];
-	find_path(argc, input, envp);
+	input.file[1] = argv[i];
+	input = fill_up_path(argc, input, envp);
 	return (input);
+}
+
+void	free_input(t_list input)
+{
+	int	i;
+	int	j;
+	int	h;
+
+	i = 0;
+	j = 0;
+	h = 0;
+	free(input.file);
+	free(input.path[0]);
+	free(input.path[1]);
+	free(input.path);
+	while (input.command[j])
+	{
+		while (input.command[j][h])
+		{
+			free(input.command[j][h]);
+			h++;
+		}
+		h = 0;
+		free(input.command[j]);
+		j++;
+	}
+	free(input.command);
 }
 
 int	main(int argc, char **argv, char **envp)
@@ -80,10 +157,11 @@ int	main(int argc, char **argv, char **envp)
 	t_list	input;
 
 	input = fill_up_input(argc, argv, envp);
-	pipex(input);
+	pipex(input, envp);
+	free_input(input);
 }
 
-void	pipex(t_list input)
+int	pipex(t_list input, char **envp)
 {
 	int		id;
 	int		id2;
@@ -93,24 +171,20 @@ void	pipex(t_list input)
 	id = fork();
 	if (id == 0)
 	{
-		child_procces(fd, input);
+		input.file_fd[0] = open(input.file[0], O_RDONLY);
+		child_procces_first(fd, input, envp, 0);
 	}
-	else
+	id2 = fork();
+	if (id2 == 0)
 	{
-		id2 = fork();
-		if (id2 == 0)
-		{
-			close(fd[1]);
-			dup2(fd[0], STDIN_FILENO);
-			close(fd[0]);
-			execlp("/usr/bin/wc", input.command[1][0], input.command[1][1], NULL);
-		}
-		else
-		{
-			close(fd[1]);
-			close(fd[0]);
-			waitpid(id, NULL, 0);
-			waitpid(id2, NULL, 0);
-		}
+		input.file_fd[1] = open(input.file[1], O_WRONLY);
+		// if (read(0, &id, 1) != 1)
+		// 	return (0);
+		child_procces_last(fd, input, envp, 1);
 	}
+	close(fd[1]);
+	close(fd[0]);
+	waitpid(id, NULL, 0);
+	waitpid(id2, NULL, 0);
+	return (0);
 }

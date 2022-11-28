@@ -5,7 +5,7 @@
 #include <string.h>
 #include <errno.h>
 
-int	main(int argc, char *argv[])
+int	main()
 {
 	int	fd1[2];
 	int	pid;

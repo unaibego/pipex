@@ -6,25 +6,26 @@
 /*   By: ubegona <ubegona@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/23 09:12:11 by ubegona           #+#    #+#             */
-/*   Updated: 2022/11/23 14:17:09 by ubegona          ###   ########.fr       */
+/*   Updated: 2022/11/28 15:25:07 by ubegona          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef PIPEX_H
 # define PIPEX_H
 
-#include "unistd.h"
-#include "stdio.h"
-#include "sys/wait.h"
-#include "stdlib.h"
+# include "unistd.h"
+# include "fcntl.h"
+# include "stdio.h"
+# include "sys/wait.h"
+# include "stdlib.h"
 
 
 // ********************************* estruktura ********************************
 
 typedef struct s_list
 {
-	char	*file1;
-	char	*file2;
+	char	**file;
+	int		file_fd[2];
 	char	***command;
 	char	**path;
 }					t_list;
@@ -35,9 +36,9 @@ int		contword(char const *s, char c);
 int		contletter(char const *s, char c);
 char	**ft_split(char const *s, char c);
 // ********************************* pipex_main ***************************
-void	pipex(t_list input);
+int	pipex(t_list input, char **envp);
 int		main(int argc, char **argv, char **envp);
-void	child_procces(int fd[2], t_list input);
+void	child_procces(int *fd, t_list input, char **envp, int i);
 // ********************************* pipex_libft ***************************
 size_t	ft_strlen(const char *str);
 char	*ft_strjoin(char const *s1, char const *s2);

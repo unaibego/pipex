@@ -6,25 +6,23 @@
 #    By: ubegona <ubegona@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/08/30 08:54:44 by ubegona           #+#    #+#              #
-#    Updated: 2022/10/06 10:19:13 by ubegona          ###   ########.fr        #
+#    Updated: 2022/11/28 09:12:47 by ubegona          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 OBJS = $(SRCS:.c=.o)
-SRCS = $(wildcard *.c)
-GCC = ar rcs gnl.a
-GCCS = gcc  -D BUFFER_SIZE=2  -c -Wall -Werror -Wextra -fsanitize=address -g3
-NAME = gnl.a
+SRCS =  main.c pipex_libft.c pipex_split.c
+GCC = gcc pipex.a
+GCCS = gcc -Wall -Werror -Wextra -g
+NAME = pipex.a
 
 all: $(NAME)
 
 $(NAME): $(OBJS)
-	$(GCC) $(OBJS)
+	$(AR) $(OBJS)
 	
-.SILENT:
-
-%.o: %.c
-	$(GCCS) $<	
+%.o: %.c 
+	$(GCCS) $<
 #$< gure leheneng dependentziaren izena da, kasu honetan %.c
 
 clean: 
