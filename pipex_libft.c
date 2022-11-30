@@ -6,7 +6,7 @@
 /*   By: ubegona <ubegona@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/23 10:54:39 by ubegona           #+#    #+#             */
-/*   Updated: 2022/11/23 10:56:22 by ubegona          ###   ########.fr       */
+/*   Updated: 2022/11/29 13:21:15 by ubegona          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,4 +64,3 @@ int	ft_strncmp(char *s1, char *s2, unsigned int n)
 	}
 	return ((unsigned char)s1[i] - (unsigned char)s2[i]);
 }
-

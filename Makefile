@@ -6,23 +6,23 @@
 #    By: ubegona <ubegona@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/08/30 08:54:44 by ubegona           #+#    #+#              #
-#    Updated: 2022/11/28 09:12:47 by ubegona          ###   ########.fr        #
+#    Updated: 2022/11/30 10:15:49 by ubegona          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 OBJS = $(SRCS:.c=.o)
-SRCS =  main.c pipex_libft.c pipex_split.c
-GCC = gcc pipex.a
-GCCS = gcc -Wall -Werror -Wextra -g
-NAME = pipex.a
-
+SRCS =  main.c pipex_libft.c pipex_split.c pipex_child.c pipex_fill_up.c 
+CC = gcc
+NAME = pipex
+CFLAGS = -Wall -Wextra -Werror 
+ 
 all: $(NAME)
 
 $(NAME): $(OBJS)
-	$(AR) $(OBJS)
-	
+	$(CC) $(CFLAGS) $(OBJS) -o $(NAME)
+
 %.o: %.c 
-	$(GCCS) $<
+	$(CC) $(CFLAGS) -c $< -o $@
 #$< gure leheneng dependentziaren izena da, kasu honetan %.c
 
 clean: 
